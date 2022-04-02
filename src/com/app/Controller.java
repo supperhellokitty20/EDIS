@@ -20,15 +20,17 @@ import java.io.File;
 	    /**
 	     * Add a patient to the system  
 	     * @param p
+	     * @return  The patient ID (key) 
 	     */
-	    void add(Patient p) ;
+	    int add(Patient p) ;
 
 	    /**
 	     * Add the patient data to the system.
 	     * The string arrays is a an array tokenized from the readline data 
 	     * @param data
+	     * @return  The patient ID (key) 
 	     */
-		void add(String[] data); 
+		int add(String[] data); 
 
 	    /** 
 	     * Edit the info of the patient  
@@ -41,15 +43,23 @@ import java.io.File;
 	     */
 	    void edit(String name) ;
 	    /**
-	     * Load file  to the controller with diffrent implementation 
-	     * @param file
-	     */
-	    void load (File file) ;
-	    /**
 	     * Export file  
 	     * @param path
 	     */
 	    void export(String path) ;
+	    /**
+	     *  Get the patient with the input id 
+	     *   
+	     * @param id
+	     * @return return null  if patient not found . 
+	     */
+	    Patient get (int id) ;
+	    /**
+	     * 
+	     * @param name
+	     * @return
+	     */
+	    Patient get (String name) ;
 
 	    /**
 	     * Print the summary details for the current system.

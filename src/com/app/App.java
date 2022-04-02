@@ -6,7 +6,7 @@ public class App {
 	/**
 	 *  The controller could be defined in term of two classes  
 	 */
-	Controller c ;
+	Controller controller ;
 
 	Scanner sc ; 
 	
@@ -75,8 +75,17 @@ public class App {
 			sc = new Scanner(load);
 			while(sc.hasNextLine()) { 
 				String data = sc.nextLine(); 
-				System.out.println(data) ;
-				//boolean  v = validateStringData(data);
+				//Tokenize the input
+				StringTokenizer tc = new StringTokenizer(data," ") ;
+				int size  = tc.countTokens();
+				String [] patientArray= new String[size] ;
+				int i =0;
+				while(tc.hasMoreTokens()) {
+					patientArray[i]= tc.nextToken().trim() ;
+					i++ ;
+				}
+				int newPatientId = controller.add(patientArray) ;
+				System.out.printf("Patient %d\n",newPatientId) ;
 				/**
 				 * Add the patient data to the  Controller  
 				 * After each file insert operation the Controller print 
@@ -98,7 +107,6 @@ public class App {
 		//The default name for the export 
 		//String  defaultName ="Patient_data.txt" ;
 		String path = "." ;
-		c.export(path) ;
 	}
 	public void quit() { 
 		System.out.println("Do you want to exit the program,all patient data will be lost\n"
@@ -156,6 +164,7 @@ public class App {
 				}
 				case("add"):{
 					// Check for id flag 
+					// takeNewPatientInput(); 
 					// Or check for 
 				} 
 				case("remove"):{ 
@@ -169,6 +178,7 @@ public class App {
     }
     public App(){ 
     	sc = new Scanner(System.in) ;
+    	controller = new SystemOne() ;
     	printBanner() ;
     	printHelp() ;
     }
