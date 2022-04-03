@@ -1,15 +1,17 @@
 package com.app;
-import java.util.* ; 
+import java.util.* ;
+
+import com.app.exceptions.InvalidDataFormat;
+import com.app.exceptions.InvalidTokensNum;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 public class App {
 	/**
 	 *  The controller could be defined in term of two classes  
 	 */
-	Controller controller ;
-
 	Scanner sc ; 
-	
+	Controller controller;
 	/** 
 	 * Print the first n number of patient  
 	 * @param num
@@ -25,10 +27,11 @@ public class App {
 		System.out.println("Use our interactive shell software with simple syntax\n"
 				+ "\t 1.load <input_file>\n"
 				+ "\t 2.export <export_file>\n"
-				+ "\t 3. list <int of patient>  --filter <Pattern>\n"
-				+ "\t 4. add <PatientList>\n"
+				+ "\t 3. get [name][id] \n"
+				+ "\t 4. add <name><age><dd-MM-yyyy><data>\n"
 				+ "\t 5. remove <PatientList> \n"
-				+ "\t 6. quit \n") ;
+				+ "\t 6. search [--id][--name][--age] \n" 
+				+ "\t 7. quit \n") ;
 		System.out.println("You can also query the data and filter by risk ,"
 				+ "blood pressure by using --filter class ") ;
 	}
@@ -49,13 +52,6 @@ public class App {
                  +banner + ANSI_RESET);
 		 System.out.print("\n")  ;
 
-	}
-	/**
-	 * TODO:Implement the function to check if the current data line is valid. 
-	 * @param data
-	 */
-	private boolean validateStringData(String data) { 
-		return true; 
 	}
 	/**
 	 * Load a file that contains the current system patient data 
@@ -84,19 +80,19 @@ public class App {
 					patientArray[i]= tc.nextToken().trim() ;
 					i++ ;
 				}
-				int newPatientId = controller.add(patientArray) ;
-				System.out.printf("Patient %d\n",newPatientId) ;
-				/**
-				 * Add the patient data to the  Controller  
-				 * After each file insert operation the Controller print 
-				 * a summary table of the file.  
-				 * Controller.add() ;
-				 */
+				int newPatientId;
+				try {
+					newPatientId = controller.add(patientArray);
+					System.out.printf(" New Patient Id added %sw\n",Integer.toHexString(newPatientId) ); 
+				} catch (InvalidDataFormat e) {
+					// TODO Auto-generated catch block
+					System.out.print(e.getMessage()) ;
+				}
+				//Summary of input patient 
 			}
 			 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.out.println("File not found !") ;
+			System.out.println("File name not found !") ;
 		}
 	}
 	/**
@@ -112,7 +108,7 @@ public class App {
 		System.out.println("Do you want to exit the program,all patient data will be lost\n"
 				+ "Do you want to safe current data ? (Y/n)") ;
 		String op= sc.next(); 
-		boolean save = false ;
+		boolean save =  op.equals("y")||op.equals("Y");
 		//Check what choice the user have 
 		if(save) { 
 			//writeData() ;
@@ -122,7 +118,27 @@ public class App {
 		System.exit(0);
 		
 	}
-	
+	/**
+	 * Check for userinput and create new paitent  
+	 *  @return theNewly create patientID
+	 */
+	public int takePatientInput(int numTokens, String[] data ) throws InvalidTokensNum{
+		//TODO: Handle incorrect input data 
+		
+		final int STRING_DATA_SIZE = 3 ;
+		if(numTokens-1!=STRING_DATA_SIZE) {
+			throw new InvalidTokensNum("To add new patient follow the syntax : add <name> <age> <arriveTime>") ;
+		}
+		int id=0;
+		try { 
+			//TODO : Modify the controller to throws InvalidDataFormat when invalid input
+			id =controller.add(data) ;
+			System.out.printf(" New Patient Id added %sw\n",Integer.toHexString(id)); 
+		} catch (Exception e) {
+			
+		}
+		return id;
+	}
 	/**
 	 * Execute the option choosen by user , in each options you should have a  data check   
 	 * There are multiple operation: 
@@ -141,31 +157,42 @@ public class App {
 
     	//Tokenize input 
     	StringTokenizer st = new StringTokenizer(option) ;
-    	//The number of arguments input by the user 
-    	int n =st.countTokens() ;
+    	// Number of user input each loop iteration 
+    	final int numTokens=st.countTokens() ;
     	//Check if the number of tokens is also valid for each type of operation
-    	String[] flag  = new String[n] ; 
-    	for(int i=0;i<n;i++) { 
+    	String[] flag  = new String[numTokens] ; 
+    	for(int i=0;i<numTokens;i++) { 
     		flag[i] = st.nextToken() ;
     	}
     	String mode  = flag[0] ;
     	switch(mode) { 
+    		/**
+    		 * User to quit the app,a save prompt will appear for user to select to save the current user data to the system. 
+    		 */
 				case( "quit"): {
-					if(n==1) quit() ;
+					if(numTokens==1) quit() ;
 					//else throws Exception.Wrong numbers of arguments 
 				}
 				case("load"):{ 
 					//TODO : Make sure the path is correct and was able to open 
-					loadFile(flag[1]);
+					try { 
+						loadFile(flag[1]);
+					}catch(Exception err ) { 
+						System.out.println(err.getMessage()) ;
+					}
 					
 				}
 				case("export"):{ 
 					//Export parse the  
 				}
 				case("add"):{
-					// Check for id flag 
-					// takeNewPatientInput(); 
-					// Or check for 
+					//We need <name><age><arriveTime>
+					try {
+						takePatientInput(numTokens,Arrays.copyOfRange(flag,1,flag.length)) ;
+					}
+					catch(Exception err) {
+						System.out.println(err.getMessage()) ;
+					}
 				} 
 				case("remove"):{ 
 					

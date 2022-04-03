@@ -12,6 +12,7 @@ class Data{
 /* The patient class only contains the id and have a data object  
  */
 public class  Patient{
+	private int id ; 
    private String name ; 
    private int age ; 
    private Date intakeTime; 
@@ -34,10 +35,17 @@ public Patient (String name , int age , Date intakeTime){
 	if(intakeTime!=null) {
 		this.setIntakeTime(intakeTime);
 	}
+	this.setId(this.hashCode());
 }
     /* Setter and getter object for the class. 
      *      
      * */
+	public int getId(){ 
+		return this.id ; 
+	}
+	private void setId(int hash) {
+		this.id = hash; 
+	}
 	public String getName() {
 		return name;
 	}

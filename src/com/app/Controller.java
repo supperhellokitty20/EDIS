@@ -5,7 +5,10 @@ package com.app;
  * @author Tuan Nguyen 
  *
  */
-import java.io.File;  
+import java.io.File;
+
+import com.app.exceptions.InvalidDataFormat;
+import com.app.exceptions.PatientNotFound;  
  interface Controller {
 	 /**
 	  * Remove the patient with such id 
@@ -29,19 +32,20 @@ import java.io.File;
 	     * The string arrays is a an array tokenized from the readline data 
 	     * @param data
 	     * @return  The patient ID (key) 
+	     * @throws InvalidDataFormat 
 	     */
-		int add(String[] data); 
+		int add(String[] data) throws InvalidDataFormat; 
 
 	    /** 
 	     * Edit the info of the patient  
 	     * @param id of the patient  
 	     */
-	    void edit(int id )  ;
+	    void edit(int id ) throws PatientNotFound;
 	    /**
 	     * Edit the info of the patient with this name 
 	     * @param name
 	     */
-	    void edit(String name) ;
+	    void edit(String name) throws PatientNotFound ;
 	    /**
 	     * Export file  
 	     * @param path
@@ -53,13 +57,13 @@ import java.io.File;
 	     * @param id
 	     * @return return null  if patient not found . 
 	     */
-	    Patient get (int id) ;
+	    Patient get (int id) throws PatientNotFound;
 	    /**
 	     * 
 	     * @param name
 	     * @return
 	     */
-	    Patient get (String name) ;
+	    Patient get (String name) throws PatientNotFound;
 
 	    /**
 	     * Print the summary details for the current system.

@@ -1,11 +1,14 @@
 package com.app;
-import java.io.File;
+import java.io.File ;
 import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat ;
 import java.util.concurrent.ConcurrentNavigableMap ;
 import java.util.concurrent.ConcurrentSkipListMap;
 import com.app.Patient;
+import com.app.exceptions.InvalidDataFormat;
+import com.app.exceptions.PatientNotFound;
+
 public class SystemOne implements Controller {
 	ConcurrentNavigableMap<Integer,Patient>  map;
 	public SystemOne(){
@@ -34,13 +37,13 @@ public class SystemOne implements Controller {
 	@Override
 	public int add(Patient p) {
 		// TODO Auto-generated method stub
-		int hash = p.hashCode();
+		int hash = p.getId();
 		map.putIfAbsent(hash, p) ;
 		return hash  ;
 	}
 
 	@Override
-	public int add(String[] data) {
+	public int add(String[] data) throws InvalidDataFormat {
 		/**
 		 * Input :  A tokenized patient String data and construct new patient . 
 		 * <name><age><arriveTime><Data>
@@ -56,30 +59,25 @@ public class SystemOne implements Controller {
 			pArriveTime = formatter.parse(data[2]) ;
 		} catch (ParseException e) {
 			//Print out errormessage  
-			System.out.println("Wrong patient arrive time format,must be dd-MM-yyyy") ;
+			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy") ;
 		} 
 		p = new Patient(pName,pAge,pArriveTime)  ;
 		return this.add(p) ;
 	}
 
 	@Override
-	public void edit(int id) {
+	public void edit(int id) throws PatientNotFound{
 		// TODO Auto-generated method stub
 		Patient p = map.get(id) ;
 		
 	}
 
 	@Override
-	public void edit(String name) {
+	public void edit(String name) throws PatientNotFound {
 		// TODO Auto-generated method stub
 
 	}
 
-	@Override
-	public void load(File file) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void export(String path) {
@@ -108,13 +106,25 @@ public class SystemOne implements Controller {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	/**
+	 * @param id 
+	 * @throws PatientNotFound
+	 * @return the Patient Object if the key is found
+	 * A get operation  on the skipList implementation of sorted set  
+	 * Analysys: Textbook
+	 */
 	@Override
-	public Patient get(int id) {
+	public Patient get(int id) throws PatientNotFound {
 		// TODO Auto-generated method stub
-		return map.get(id) ;
+		if(map.containsKey(id)) {
+			return map.get(id) ;
+		}else {
+			throw new PatientNotFound("The paitient record is not in the system.") ;
+		}
 	}
+
 	@Override
-	public Patient get(String name) {
+	public Patient get(String name) throws PatientNotFound { 
 		// TODO Auto-generated method stub
 		return null;
 	}
