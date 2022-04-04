@@ -32,9 +32,9 @@ class TestSystemOne {
 		SystemOne  sys = new SystemOne() ;
 		Patient p = new Patient("GI jane",42,new Date()); 
 		sys.add(p);
-		int id = p.getId() ;
+		String id = p.getId() ;
 		try {
-			sys.get(id) ;
+			sys.get(id,false) ;
 			assertEquals(1,sys.count()) ;
 		} catch (PatientNotFound e) {
 			fail("Cant get patient with the correct id") ;
@@ -45,7 +45,7 @@ class TestSystemOne {
 		//Find a not found patient expect to throws a Patient Not found  
 		SystemOne  sys = new SystemOne() ;
 		assertThrows(PatientNotFound.class, () -> {
-			sys.get(1) ;
+			sys.get("One",false) ;
 		});
 	}
 
@@ -80,7 +80,7 @@ class TestSystemOne {
 	void processPatientStringData() { 
 		SystemOne  sys = new SystemOne() ;
 		String[]  t = {"James/Smith","42","03-04-2021"} ;
-		int id = 0;
+		String id="" ;
 		try {
 			id = sys.add(t);
 		} catch (InvalidDataFormat e) {
@@ -88,7 +88,7 @@ class TestSystemOne {
 		}
 		Patient p;
 		try {
-			p = sys.get(id);
+			p = sys.get(id,false);
 			assertEquals(1,sys.count()) ;
 			assertEquals(42,p.getAge()) ;
 			assertEquals("James/Smith",p.getName()) ;
