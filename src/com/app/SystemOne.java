@@ -1,5 +1,6 @@
 package com.app;
 import java.io.File ;
+import java.util.ArrayList;
 import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat ;
@@ -14,20 +15,52 @@ public class SystemOne implements Controller {
 	public SystemOne(){
 		map= new ConcurrentSkipListMap() ;
 	}
+	
+	public ConcurrentNavigableMap<Integer,Patient> getMap(){
+		return this.map;
+	}
+	
+	public ArrayList<Integer> getID(){
+		return new ArrayList<Integer>(this.map.keySet());
+	}
+	
+	public ArrayList<String> getNames(){
+		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+		ArrayList<String> names = new ArrayList<String>();
+		for (int i = 0; i<patients.size(); i++) {
+				names.add(patients.get(i).getName());	
+		}
+		return names;
+	}
+	
 	/**
 	 *  A remove operation of a skip list sorted Map  
 	 *  Analysis  : Textbook
 	 */
 	@Override
-	public void remove(int id) {
+	public void remove(int id) throws PatientNotFound {
 		// TODO Auto-generated method stub
-		
+		if(this.map.containsKey(id)) {
+			this.map.remove(id);
+		}else {
+			throw new PatientNotFound("The paitient record is not in the system.") ;
+		}
 	}
 
 	@Override
-	public void remove(String name) {
+	public void remove(String name) throws PatientNotFound {
 		// TODO Auto-generated method stub
-
+		if(this.search(name)) {
+			ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());	
+			for (int i = 0; i<patients.size(); i++) {
+				if(patients.get(i).getName().equals(name)) {
+					this.map.remove(patients.get(i).getId());
+					break;
+				}
+			}
+		}else {
+			throw new PatientNotFound("The paitient record is not in the system.") ;
+		}
 	}
 
 	/** 
@@ -38,7 +71,7 @@ public class SystemOne implements Controller {
 	public int add(Patient p) {
 		// TODO Auto-generated method stub
 		int hash = p.getId();
-		map.putIfAbsent(hash, p) ;
+		this.map.putIfAbsent(hash, p) ;
 		return hash  ;
 	}
 
@@ -99,12 +132,19 @@ public class SystemOne implements Controller {
 	@Override
 	public boolean search(String name) {
 		// TODO Auto-generated method stub
+		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());	
+		for (int i = 0; i<patients.size(); i++) {
+			if(patients.get(i).getName().equals(name)) {
+				return true;
+			}
+		}
 		return false;
 	}
+	
 	@Override
 	public boolean search(int id) {
 		// TODO Auto-generated method stub
-		return false;
+		return this.map.containsKey(id);
 	}
 	/**
 	 * @param id 
@@ -126,7 +166,19 @@ public class SystemOne implements Controller {
 	@Override
 	public Patient get(String name) throws PatientNotFound { 
 		// TODO Auto-generated method stub
-		return null;
+		if(this.search(name)) {
+			ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());	
+			Patient found = null;
+			for (int i = 0; i<patients.size(); i++) {
+				if(patients.get(i).getName().equals(name)) {
+					found = patients.get(i);
+					break;
+				}
+			}
+			return found;
+		}else {
+			throw new PatientNotFound("The paitient record is not in the system.") ;
+		}
 	}
 
 }
