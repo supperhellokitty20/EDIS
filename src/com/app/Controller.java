@@ -14,12 +14,12 @@ import com.app.exceptions.PatientNotFound;
 	  * Remove the patient with such id 
 	  * @param id
 	  */
-	    void remove(int id) ;
+	    void remove(int id) throws PatientNotFound;
 	    /**
 	     * Remove the patient with that such name  
 	     * @param name
 	     */
-	    void remove(String name) ;
+	    void remove(String name) throws PatientNotFound;
 	    /**
 	     * Add a patient to the system  
 	     * @param p
