@@ -119,7 +119,7 @@ public class SystemOne implements Controller {
 		if(map.containsKey(id)) {
 			return map.get(id) ;
 		}else {
-			throw new PatientNotFound("The paitient record is not in the system.") ;
+			throw new PatientNotFound("The patient record is not in the system.") ;
 		}
 	}
 
