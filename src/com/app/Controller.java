@@ -9,7 +9,7 @@ import java.io.File;
 
 import com.app.exceptions.InvalidDataFormat;
 import com.app.exceptions.PatientNotFound;  
- interface Controller {
+ public interface Controller {
 	    /**
 	     * Remove the patient with that such name  
 	     * @param name
@@ -30,12 +30,25 @@ import com.app.exceptions.PatientNotFound;
 	     * @throws InvalidDataFormat 
 	     */
 		String add(String[] data) throws InvalidDataFormat; 
-
+		/**
+		 * 
+		 */
+		enum EditOptions { 
+			NAME,
+			AGE,
+			ARRIVETIME ,
+			ALL
+		} ;
 	    /**
-	     * Edit the info of the patient with this name 
+	     * Edit the patient info with this key can be a name or an id ,the function will update the patient data  
+	     * For example, if <code>option == EditOptions.NAME</code> , we will edit the name with the value provided 
 	     * @param name
+	     * @param isName 
+	     * @param option which data field of the patient you want to change 
+	     * @throws PatientNotFound 
+	     * @throws InvalidDataFormat when value passed in does not match with the option , for example option == EditOptions.AGE but value == hah 
 	     */
-	    void edit(String key ,boolean isName) throws PatientNotFound ;
+	    void edit(String key ,boolean isName,EditOptions option,String value) throws PatientNotFound,InvalidDataFormat ;
 	    /**
 	     * Export file  
 	     * @param path
@@ -59,7 +72,7 @@ import com.app.exceptions.PatientNotFound;
 	     */
 	    int count();
 	    /** 
-	     * Do a search in the system with , if isName==true  
+	     * Do a search in the system , if isName==true  
 	     * the key is considered as a name , otherwise search the patient with such id
 	     * @param name
 	     * @param isName
