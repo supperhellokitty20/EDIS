@@ -8,8 +8,14 @@ package com.app;
 import java.io.File;
 
 import com.app.exceptions.InvalidDataFormat;
+import com.app.exceptions.InvalidTokensNum;
+import com.app.exceptions.PatientExist;
 import com.app.exceptions.PatientNotFound;  
  public interface Controller {
+	 	//The date format of the Controller
+	 	final String DATE_FORMAT = "dd-MM-yyyy" ;
+	 	//The size of tokenized array 
+	 	final int STRING_ARRAY_DATA_SIZE = 3; 
 	    /**
 	     * Remove the patient with that such name  
 	     * @param name
@@ -20,7 +26,7 @@ import com.app.exceptions.PatientNotFound;
 	     * @param p
 	     * @return  The patient ID (key) 
 	     */
-	    String add(Patient p) ;
+	    String add(Patient p) throws PatientExist;
 
 	    /**
 	     * Add the patient data to the system.
@@ -29,7 +35,7 @@ import com.app.exceptions.PatientNotFound;
 	     * @return  The patient ID (key) 
 	     * @throws InvalidDataFormat 
 	     */
-		String add(String[] data) throws InvalidDataFormat; 
+		String add(String[] data) throws InvalidDataFormat,InvalidTokensNum,PatientExist,InvalidTokensNum; 
 		/**
 		 * 
 		 */
@@ -42,13 +48,14 @@ import com.app.exceptions.PatientNotFound;
 	    /**
 	     * Edit the patient info with this key can be a name or an id ,the function will update the patient data  
 	     * For example, if <code>option == EditOptions.NAME</code> , we will edit the name with the value provided 
+	     * @param <T>
 	     * @param name
 	     * @param isName 
 	     * @param option which data field of the patient you want to change 
 	     * @throws PatientNotFound 
 	     * @throws InvalidDataFormat when value passed in does not match with the option , for example option == EditOptions.AGE but value == hah 
 	     */
-	    void edit(String key ,boolean isName,EditOptions option,String value) throws PatientNotFound,InvalidDataFormat ;
+	     void edit(String key ,boolean isName,EditOptions option, String value) throws PatientNotFound,InvalidDataFormat ;
 	    /**
 	     * Export file  
 	     * @param path
