@@ -43,6 +43,11 @@ public Patient (String name , int age , Date intakeTime){
 	public String getId(){ 
 		return this.id ; 
 	}
+	/**
+	 * set the id of the patient , each Patient id is the hexString(hash) of
+	 * this Obj fields 
+	 * @param hash
+	 */
 	private void setId(int hash) {
 		this.id = Integer.toHexString(hash); 
 	}
