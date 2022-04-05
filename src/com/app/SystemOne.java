@@ -1,116 +1,116 @@
 package com.app;
-import java.io.File ;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.StringTokenizer;
 import java.text.ParseException;
-import java.text.SimpleDateFormat ;
-import java.util.concurrent.ConcurrentNavigableMap ;
+import java.text.SimpleDateFormat;
+import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import com.app.Patient;
 import com.app.exceptions.InvalidDataFormat;
+import com.app.exceptions.InvalidTokensNum;
+import com.app.exceptions.PatientExist;
 import com.app.exceptions.PatientNotFound;
 
 public class SystemOne implements Controller {
-	ConcurrentNavigableMap<Integer,Patient>  map;
-	public SystemOne(){
-		map= new ConcurrentSkipListMap() ;
+	ConcurrentNavigableMap<String, Patient> map;
+
+	public SystemOne() {
+		map = new ConcurrentSkipListMap<String, Patient>();
 	}
-	
-	public ConcurrentNavigableMap<Integer,Patient> getMap(){
-		return this.map;
+
+	public ArrayList<String> getIDs() {
+		return new ArrayList<String>(this.map.keySet());
 	}
-	
-	public ArrayList<Integer> getID(){
-		return new ArrayList<Integer>(this.map.keySet());
-	}
-	
-	public ArrayList<String> getNames(){
+
+	public ArrayList<String> getNames() {
 		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
 		ArrayList<String> names = new ArrayList<String>();
-		for (int i = 0; i<patients.size(); i++) {
-				names.add(patients.get(i).getName());	
+		for (int i = 0; i < patients.size(); i++) {
+			names.add(patients.get(i).getName());
 		}
 		return names;
 	}
-	
+
 	/**
-	 *  A remove operation of a skip list sorted Map  
-	 *  Analysis  : Textbook
+	 * A remove operation of a skip list sorted Map Analysis : Textbook
 	 */
 	@Override
-	public void remove(int id) throws PatientNotFound {
-		// TODO Auto-generated method stub
-		if(this.map.containsKey(id)) {
-			this.map.remove(id);
-		}else {
-			throw new PatientNotFound("The paitient record is not in the system.") ;
+	public void remove(String key, boolean isName) throws PatientNotFound {
+		// Remove the patient with such id
+		if (!isName) {
+			if (this.map.containsKey(key)) {
+				this.map.remove(key);
+			} else {
+				throw new PatientNotFound("The patient id" + key + " is not found");
+			}
+			return;
 		}
-	}
-
-	@Override
-	public void remove(String name) throws PatientNotFound {
-		// TODO Auto-generated method stub
-		if(this.search(name)) {
-			ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());	
-			for (int i = 0; i<patients.size(); i++) {
-				if(patients.get(i).getName().equals(name)) {
+		// Remove the patient with such name
+		if (this.search(key, true)) {
+			ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+			for (int i = 0; i < patients.size(); i++) {
+				if (patients.get(i).getName().equals(key)) {
 					this.map.remove(patients.get(i).getId());
 					break;
 				}
 			}
-		}else {
-			throw new PatientNotFound("The paitient record is not in the system.") ;
+		} else {
+			throw new PatientNotFound("The patient name" + key + " is not found");
 		}
 	}
 
-	/** 
-	 * Put the patient in the system  
-	 * Analysis: from the textbook 
+	/**
+	 * Put the patient in the system Analysis: from the textbook
 	 */
 	@Override
-	public int add(Patient p) {
+	public String add(Patient p) throws PatientExist {
 		// TODO Auto-generated method stub
-		int hash = p.getId();
-		this.map.putIfAbsent(hash, p) ;
-		return hash  ;
+		if(this.map.containsValue(p)) {
+			throw new PatientExist("The patient with id"+p.getId()
+			+" with name"
+			+ p.getName()+" had exist!") ;
+		}
+		String id = p.getId();
+		this.map.putIfAbsent(id, p);
+		return id;
 	}
 
 	@Override
-	public int add(String[] data) throws InvalidDataFormat {
+	public String add(String[] data) throws InvalidDataFormat,InvalidTokensNum,PatientExist
+	{
 		/**
-		 * Input :  A tokenized patient String data and construct new patient . 
-		 * <name><age><arriveTime><Data>
-		 * Output:  The ID of the patient   
+		 * Input : A tokenized patient String data and construct new patient .
+		 * <name><age><arriveTime><Data> Output: The ID of the patient
 		 */
-		Patient p  ;
-		String pName = data[0] ;
-		int  pAge = Integer.parseInt(data[1]) ;
-		//Parse the date from string 
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		Date pArriveTime  =null;
-		try {
-			pArriveTime = formatter.parse(data[2]) ;
-		} catch (ParseException e) {
-			//Print out errormessage  
-			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy") ;
-		} 
-		p = new Patient(pName,pAge,pArriveTime)  ;
-		return this.add(p) ;
-	}
-
-	@Override
-	public void edit(int id) throws PatientNotFound{
-		// TODO Auto-generated method stub
-		Patient p = map.get(id) ;
 		
+		
+		if(data.length<STRING_ARRAY_DATA_SIZE) {
+			throw new InvalidTokensNum("The number of input tokens is"+data.length+" expected "+STRING_ARRAY_DATA_SIZE) ;
+		}
+		Patient p;
+		String pName = cleanName(data[0]);
+		if(pName.isBlank()) {
+			throw new InvalidDataFormat("Patient name"+pName+" is not valid") ;
+		}
+		// Parse the date from string
+		Date pArriveTime = null;
+		int pAge = Integer.parseInt(data[1]);
+		try {
+			pArriveTime = this.parseDate(data[2]);
+		} catch (Exception e) {
+			// Print out errormessage
+			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
+		}
+		p = new Patient(pName, pAge, pArriveTime);
+		try {
+			return this.add(p);
+		} catch (PatientExist e) {
+			throw new PatientExist(e.getMessage()) ;
+		}
 	}
-
-	@Override
-	public void edit(String name) throws PatientNotFound {
-		// TODO Auto-generated method stub
-
-	}
-
 
 	@Override
 	public void export(String path) {
@@ -126,59 +126,176 @@ public class SystemOne implements Controller {
 
 	@Override
 	public int count() {
-		// TODO Auto-generated method stub
 		return map.size();
 	}
+
 	@Override
-	public boolean search(String name) {
-		// TODO Auto-generated method stub
-		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());	
-		for (int i = 0; i<patients.size(); i++) {
-			if(patients.get(i).getName().equals(name)) {
+	// Analysis see textbook
+	public boolean search(String key, boolean isName) {
+		// Search the system for d
+		if (!isName) {
+			return this.map.containsKey(key);
+		}
+		/**
+		 * Here we do a loop on ArrayList Complexity: idk
+		 */
+		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+		for (int i = 0; i < patients.size(); i++) {
+			if (patients.get(i).getName().equals(key)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	@Override
-	public boolean search(int id) {
-		// TODO Auto-generated method stub
-		return this.map.containsKey(id);
-	}
+
 	/**
-	 * @param id 
+	 * @param id
 	 * @throws PatientNotFound
-	 * @return the Patient Object if the key is found
-	 * A get operation  on the skipList implementation of sorted set  
-	 * Analysys: Textbook
+	 * @return the Patient Object if the key is found A get operation on the
+	 *         skipList implementation of sorted set We dont need to check if get
+	 *         return a null object because if it's null the function already throws
+	 *         a PatientNotFound exception Analysys: Textbook
 	 */
 	@Override
-	public Patient get(int id) throws PatientNotFound {
-		// TODO Auto-generated method stub
-		if(map.containsKey(id)) {
-			return map.get(id) ;
-		}else {
-			throw new PatientNotFound("The patient record is not in the system.") ;
-		}
-	}
-
-	@Override
-	public Patient get(String name) throws PatientNotFound { 
-		// TODO Auto-generated method stub
-		if(this.search(name)) {
-			ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());	
-			Patient found = null;
-			for (int i = 0; i<patients.size(); i++) {
-				if(patients.get(i).getName().equals(name)) {
-					found = patients.get(i);
-					break;
-				}
+	public Patient get(String key, boolean isName) throws PatientNotFound {
+		// Get the patient with such id
+		Patient found = null;
+		if (!isName) {
+			if (map.containsKey(key)) {
+				return found = map.get(key);
+			} else {
+				throw new PatientNotFound("Patient id " + key + " is not found");
 			}
-			return found;
-		}else {
-			throw new PatientNotFound("The paitient record is not in the system.") ;
 		}
+		// Get the patient with such name
+		if (this.getNames().contains(key)) {
+			if (this.search(key, true)) {
+				ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+				for (int i = 0; i < patients.size(); i++) {
+					if (patients.get(i).getName().equals(key)) {
+						found = patients.get(i);
+						break;
+					}
+				}
+			} else {
+				throw new PatientNotFound("The patient name " + key + " is not found on the system");
+			}
+		}
+		return found;
+	}
+	public Date parseDate(String value) throws InvalidDataFormat{ 
+			SimpleDateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
+			Date pArriveTime = null;
+			try {
+				pArriveTime = formatter.parse(value);
+			} catch (ParseException e) {
+				// Print out errormessage
+				throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
+			}
+			return pArriveTime;
+	}
+	/**
+	 * Repplace all number from the name with empty String  
+	 * @param n
+	 * @return
+	 */
+	public String cleanName(String n) { 
+		//Clean special character
+		n=n.replaceAll("[^a-zA-Z0-9]"," ");
+		n=n.replaceAll("[0-9]","");
+		return n.trim(); 
+	}
+	@Override
+	public  void edit(String key, boolean isName, EditOptions option, String value)
+			throws PatientNotFound, InvalidDataFormat{
+		/**
+		 * Try to get the patient first
+		 */
+		Patient p ;
+		// If key is ID
+		if (!isName) {
+			try {
+				p = this.get(key, false);
+			} catch (PatientNotFound e) {
+				throw new PatientNotFound("Patient id " + key + " is not found");
+			}
+		}else {
+			try {
+				p = this.get(key, true);
+			} catch (PatientNotFound e) {
+				throw new PatientNotFound("Patient name" + key + " is not found");
+			}
+			
+		}
+		// If key is name
+		/*
+		 * Edit the patient info
+		 */
+		switch (option) {
+		case NAME: {
+			//Check and validate name
+			value = cleanName(value) ;
+			if(value.isBlank()) {
+				throw new InvalidDataFormat("Name may contains special character or is empty")  ;
+			}
+			p.setName(value);
+			break  ;
+		}
+		case AGE: {
+			try { 
+				int v =Integer.parseInt(value) ;
+				p.setAge(v);
+				break ;
+			}
+			catch(Exception e) {
+				throw new InvalidDataFormat("The inputed age value "+value+" cannot be parse to a number") ;
+			}
+
+		}
+		case ARRIVETIME: {
+			try {
+				Date newDate;  
+				newDate = this.parseDate(value)  ;
+				p.setIntakeTime(newDate);
+				break;
+			}catch(Exception e) {
+				throw new InvalidDataFormat("The input date value"+value+ " can't be parsed") ; 
+			}
+		}
+		case ALL: {
+			//Tokenize the input value <name> <age> <arriveTime> 
+			StringTokenizer st = new StringTokenizer(value," ") ;
+			if(st.countTokens()<STRING_ARRAY_DATA_SIZE) { 
+				throw new InvalidDataFormat("Expecting "+STRING_ARRAY_DATA_SIZE+"got "+st.countTokens()) ;
+			}
+			String[] newPatientData = new String[STRING_ARRAY_DATA_SIZE]  ;
+			int i =0 ; 
+			while(st.hasMoreTokens()) {
+				newPatientData[i] =st.nextToken() ;
+				i++ ;
+			}
+			String newName = this.cleanName(newPatientData[0]) ; 
+			if(newName.isBlank()) {
+				throw new InvalidDataFormat("Name may contains special character or is empty")  ;
+			}
+			p.setName(newName);
+			try { 
+				int v =Integer.parseInt(newPatientData[1]) ;
+				p.setAge(v);
+			}
+			catch(Exception e) {
+				throw new InvalidDataFormat("The inputed age value "+value+" cannot be parse to a number") ;
+			}
+			try {
+				Date newDate = this.parseDate(newPatientData[2]) ;
+				p.setIntakeTime(newDate) ;
+			}catch(Exception e) {
+				throw new InvalidDataFormat(e.getMessage()) ;
+			}
+			
+		}
+
 	}
 
+	}
 }
