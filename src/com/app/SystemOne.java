@@ -7,6 +7,7 @@ import java.util.StringTokenizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.regex.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 import com.app.Patient;
 import com.app.exceptions.InvalidDataFormat;
@@ -44,7 +45,7 @@ public class SystemOne implements Controller {
 			if (this.map.containsKey(key)) {
 				this.map.remove(key);
 			} else {
-				throw new PatientNotFound("The patient id" + key + " is not found");
+				throw new PatientNotFound("The patient id " + key + " is not found");
 			}
 			return;
 		}
@@ -58,20 +59,40 @@ public class SystemOne implements Controller {
 				}
 			}
 		} else {
-			throw new PatientNotFound("The patient name" + key + " is not found");
+			throw new PatientNotFound("The patient name " + key + " is not found");
 		}
 	}
+	protected int countSubfix(String name) { 
+			int c =1 ;
+			ArrayList<String> nameList = this.getNames() ;
+			String sp = ""+name;
+			for(int i =0;i<nameList.size();i++) { 
+				String currentName = nameList.get(i) ;
+				boolean match=  Pattern.compile(sp+"_[0-9]").matcher(currentName).matches()  ;
+				if(match) { 
+					c++ ;
+				}
+			}
 
+		return c+1 ;
+	}
 	/**
 	 * Put the patient in the system Analysis: from the textbook
 	 */
 	@Override
 	public String add(Patient p) throws PatientExist {
 		// TODO Auto-generated method stub
-		if(this.map.containsValue(p)) {
-			throw new PatientExist("The patient with id"+p.getId()
-			+" with name"
-			+ p.getName()+" had exist!") ;
+		if (this.map.containsValue(p)) {
+			throw new PatientExist("The patient \"" + p.getId() + "\":\"" + p.getName() + "\" had exist!\n");
+		}
+		if(this.getNames().contains(p.getName())) { 
+			//Write test for this  
+			String oldName = p.getName() ;
+			int c = countSubfix(oldName) ;
+			//Loop through all the name , match the patient regex pattern
+			p.setName(oldName+"_"+c) ;
+			System.out.println("\""+oldName+"\" has existed , adding a prefix\n"
+					+ "Patient new name:"+p.getName()+"(id :"+p.getId()+")") ;
 		}
 		String id = p.getId();
 		this.map.putIfAbsent(id, p);
@@ -79,36 +100,40 @@ public class SystemOne implements Controller {
 	}
 
 	@Override
-	public String add(String[] data) throws InvalidDataFormat,InvalidTokensNum,PatientExist
-	{
+	public String add(String[] data) throws InvalidDataFormat, InvalidTokensNum, PatientExist {
 		/**
 		 * Input : A tokenized patient String data and construct new patient .
 		 * <name><age><arriveTime><Data> Output: The ID of the patient
 		 */
-		
-		
-		if(data.length<STRING_ARRAY_DATA_SIZE) {
-			throw new InvalidTokensNum("The number of input tokens is"+data.length+" expected "+STRING_ARRAY_DATA_SIZE) ;
+
+		if (data.length < STRING_ARRAY_DATA_SIZE) {
+			throw new InvalidTokensNum(
+					"The number of input tokens is " + data.length + " expected " + STRING_ARRAY_DATA_SIZE);
 		}
 		Patient p;
 		String pName = cleanName(data[0]);
-		if(pName.isBlank()) {
-			throw new InvalidDataFormat("Patient name"+pName+" is not valid") ;
+		if (pName.isBlank()) {
+			throw new InvalidDataFormat("Patient name \"" + pName + "\" is not valid");
 		}
 		// Parse the date from string
 		Date pArriveTime = null;
-		int pAge = Integer.parseInt(data[1]);
+		int pAge;
+		try {
+			pAge = Integer.parseInt(data[1]);
+		} catch (Exception e) {
+			throw new InvalidDataFormat("Input age \"" + data[1] + "\" can't be parse to int");
+		}
 		try {
 			pArriveTime = this.parseDate(data[2]);
 		} catch (Exception e) {
 			// Print out errormessage
-			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
+			throw new InvalidDataFormat("Input date \"" + data[2] + "\" not in the format of dd-MM-yyyy");
 		}
 		p = new Patient(pName, pAge, pArriveTime);
 		try {
 			return this.add(p);
 		} catch (PatientExist e) {
-			throw new PatientExist(e.getMessage()) ;
+			throw new PatientExist(e.getMessage());
 		}
 	}
 
@@ -162,56 +187,66 @@ public class SystemOne implements Controller {
 		Patient found = null;
 		if (!isName) {
 			if (map.containsKey(key)) {
-				return found = map.get(key);
-			} else {
-				throw new PatientNotFound("Patient id " + key + " is not found");
+				found = map.get(key);
 			}
-		}
-		// Get the patient with such name
-		if (this.getNames().contains(key)) {
-			if (this.search(key, true)) {
-				ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
-				for (int i = 0; i < patients.size(); i++) {
-					if (patients.get(i).getName().equals(key)) {
-						found = patients.get(i);
-						break;
+		} else {
+			//TODO:  What if there is a patient with the same name 
+			if (this.getNames().contains(key)) {
+				if (this.search(key, true)) {
+					ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+					for (int i = 0; i < patients.size(); i++) {
+						if (patients.get(i).getName().equals(key)) {
+							found = patients.get(i);
+							break;
+						}
 					}
 				}
+			}
+
+		}
+		// Get the patient with such name
+		if (found == null) {
+			if (!isName) {
+				throw new PatientNotFound("Patient id " + key + " is not found");
 			} else {
 				throw new PatientNotFound("The patient name " + key + " is not found on the system");
 			}
 		}
 		return found;
 	}
-	public Date parseDate(String value) throws InvalidDataFormat{ 
-			SimpleDateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
-			Date pArriveTime = null;
-			try {
-				pArriveTime = formatter.parse(value);
-			} catch (ParseException e) {
-				// Print out errormessage
-				throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
-			}
-			return pArriveTime;
+
+	public Date parseDate(String value) throws InvalidDataFormat {
+		SimpleDateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
+		Date pArriveTime = null;
+		try {
+			pArriveTime = formatter.parse(value);
+		} catch (ParseException e) {
+			// Print out errormessage
+			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
+		}
+		return pArriveTime;
 	}
+
 	/**
-	 * Repplace all number from the name with empty String  
+	 * Repplace all number from the name with empty String
+	 * 
 	 * @param n
 	 * @return
 	 */
-	public String cleanName(String n) { 
-		//Clean special character
-		n=n.replaceAll("[^a-zA-Z0-9]"," ");
-		n=n.replaceAll("[0-9]","");
-		return n.trim(); 
+	public String cleanName(String n) {
+		// Clean special character
+		n = n.replaceAll("[^a-zA-Z0-9]", " ");
+		n = n.replaceAll("[0-9]", "");
+		return n.trim();
 	}
+
 	@Override
-	public  void edit(String key, boolean isName, EditOptions option, String value)
-			throws PatientNotFound, InvalidDataFormat{
+	public void edit(String key, boolean isName, EditOptions option, String value)
+			throws PatientNotFound, InvalidDataFormat {
 		/**
 		 * Try to get the patient first
 		 */
-		Patient p ;
+		Patient p;
 		// If key is ID
 		if (!isName) {
 			try {
@@ -219,13 +254,13 @@ public class SystemOne implements Controller {
 			} catch (PatientNotFound e) {
 				throw new PatientNotFound("Patient id " + key + " is not found");
 			}
-		}else {
+		} else {
 			try {
 				p = this.get(key, true);
 			} catch (PatientNotFound e) {
-				throw new PatientNotFound("Patient name" + key + " is not found");
+				throw new PatientNotFound("Patient name " + key + " is not found");
 			}
-			
+
 		}
 		// If key is name
 		/*
@@ -233,69 +268,67 @@ public class SystemOne implements Controller {
 		 */
 		switch (option) {
 		case NAME: {
-			//Check and validate name
-			value = cleanName(value) ;
-			if(value.isBlank()) {
-				throw new InvalidDataFormat("Name may contains special character or is empty")  ;
+			// Check and validate name
+			value = cleanName(value);
+			if (value.isBlank()) {
+				throw new InvalidDataFormat("Name may contains special character or is empty");
 			}
 			p.setName(value);
-			break  ;
+			break;
 		}
 		case AGE: {
-			try { 
-				int v =Integer.parseInt(value) ;
+			try {
+				int v = Integer.parseInt(value);
 				p.setAge(v);
-				break ;
-			}
-			catch(Exception e) {
-				throw new InvalidDataFormat("The inputed age value "+value+" cannot be parse to a number") ;
+				break;
+			} catch (Exception e) {
+				throw new InvalidDataFormat("The inputed age value " + value + " cannot be parse to a number");
 			}
 
 		}
 		case ARRIVETIME: {
 			try {
-				Date newDate;  
-				newDate = this.parseDate(value)  ;
+				Date newDate;
+				newDate = this.parseDate(value);
 				p.setIntakeTime(newDate);
 				break;
-			}catch(Exception e) {
-				throw new InvalidDataFormat("The input date value"+value+ " can't be parsed") ; 
+			} catch (Exception e) {
+				throw new InvalidDataFormat("The input date value" + value + " can't be parsed");
 			}
 		}
 		case ALL: {
-			//Tokenize the input value <name> <age> <arriveTime> 
-			StringTokenizer st = new StringTokenizer(value," ") ;
-			if(st.countTokens()<STRING_ARRAY_DATA_SIZE) { 
-				throw new InvalidDataFormat("Expecting "+STRING_ARRAY_DATA_SIZE+"got "+st.countTokens()) ;
+			// Tokenize the input value <name> <age> <arriveTime>
+			StringTokenizer st = new StringTokenizer(value, " ");
+			if (st.countTokens() < STRING_ARRAY_DATA_SIZE) {
+				throw new InvalidDataFormat("Expecting " + STRING_ARRAY_DATA_SIZE + "got " + st.countTokens());
 			}
-			String[] newPatientData = new String[STRING_ARRAY_DATA_SIZE]  ;
-			int i =0 ; 
-			while(st.hasMoreTokens()) {
-				newPatientData[i] =st.nextToken() ;
-				i++ ;
+			String[] newPatientData = new String[STRING_ARRAY_DATA_SIZE];
+			int i = 0;
+			while (st.hasMoreTokens()) {
+				newPatientData[i] = st.nextToken();
+				i++;
 			}
-			String newName = this.cleanName(newPatientData[0]) ; 
-			if(newName.isBlank()) {
-				throw new InvalidDataFormat("Name may contains special character or is empty")  ;
+			String newName = this.cleanName(newPatientData[0]);
+			if (newName.isBlank()) {
+				throw new InvalidDataFormat("Name may contains special character or is empty");
 			}
 			p.setName(newName);
-			try { 
-				int v =Integer.parseInt(newPatientData[1]) ;
+			try {
+				int v = Integer.parseInt(newPatientData[1]);
 				p.setAge(v);
-			}
-			catch(Exception e) {
-				throw new InvalidDataFormat("The inputed age value "+value+" cannot be parse to a number") ;
+			} catch (Exception e) {
+				throw new InvalidDataFormat("The inputed age value " + value + " cannot be parse to a number");
 			}
 			try {
-				Date newDate = this.parseDate(newPatientData[2]) ;
-				p.setIntakeTime(newDate) ;
-			}catch(Exception e) {
-				throw new InvalidDataFormat(e.getMessage()) ;
+				Date newDate = this.parseDate(newPatientData[2]);
+				p.setIntakeTime(newDate);
+			} catch (Exception e) {
+				throw new InvalidDataFormat(e.getMessage());
 			}
-			
+
 		}
 
-	}
+		}
 
 	}
 }
