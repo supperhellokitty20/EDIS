@@ -68,6 +68,10 @@ public Patient (String name , int age , Date intakeTime){
 		return Objects.hash(age, intakeTime, name);
 	}
 	@Override
+	public String toString() {
+		return "Patient [id=" + id + ", name=" + name + ", age=" + age + ", intakeTime=" + intakeTime + "]";
+	}
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
