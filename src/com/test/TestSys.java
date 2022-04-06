@@ -34,7 +34,7 @@ class TestSys {
 	//Testing get id to see whether hexString hashcode is id of that patient 
 	void testGetId() { 
 		Patient d = new Patient("Will Smith",42,new Date()); 
-		String id = d.getId() ;
+		String id = Integer.toHexString(d.hashCode()) ;
 		try {
 			String sysId ;
 			sysId=sys.add(d) ;
@@ -43,29 +43,37 @@ class TestSys {
 			
 		};
 	} 
+	
 	@Test
 	void addPatient() {
 		Patient p = new Patient("out of ChrisRock",42,new Date()); 
 		Patient c = new Patient("Slap the Shit",42,new Date()); 
 		Patient d = new Patient("Will Smith",42,new Date()); 
+		String i1 = Integer.toHexString(p.hashCode())  ;
+		String i2 = Integer.toHexString(c.hashCode()); 
+		String i3 = Integer.toHexString(d.hashCode()); 
 		try {
-			sys.add(p);
+			String s1 =sys.add(p);
+			assertEquals(true,i1.equals(s1)) ;
 		} catch (PatientExist e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
-			sys.add(c);
+			String s2 =sys.add(c);
+			assertEquals(true,i2.equals(s2)) ;
 		} catch (PatientExist e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
-			sys.add(d);
+			String s3=sys.add(d);
+			assertEquals(true,i3.equals(s3)) ;
 		} catch (PatientExist e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		assertEquals(3,sys.count()) ;
 	}
 	@Test
@@ -81,6 +89,31 @@ class TestSys {
 		assertThrows(PatientExist.class,()->{
 			sys.add(d); 
 		}) ;
+		//Test Addd not the same person but the same name 
+		Patient z = new Patient("Will Smith",43,new Date()); 
+		Patient z1 = new Patient("Will Smith",444,new Date()); 
+		Patient c = new Patient("Slap the Shit",42,new Date()); 
+		Patient z2 = new Patient("Will Smith",324,new Date()); 
+		try {
+			sys.add(z);
+			sys.add(z1);
+			sys.add(c);
+			sys.add(z2);
+		}
+		catch(Exception e) {
+			fail("The add function auto add subfix _number") ;
+		}
+		try {
+			boolean x =sys.get(z.getId(), false).getName().equals("Will Smith_2");
+			boolean t =sys.get(z1.getId(), false).getName().equals("Will Smith_3");
+			boolean t2 =sys.get(z2.getId(), false).getName().equals("Will Smith_4");
+			assertEquals(true,x) ;
+			assertEquals(true,t) ;
+			assertEquals(true,t2) ;
+		} catch (PatientNotFound e) {
+			fail("") ;
+		}
+		
 	}
 
 	//Test get patient with using patient id. 
@@ -156,7 +189,7 @@ class TestSys {
 	@Test
 	void testRemove3() { 
 		Patient d = new Patient("Will Smith",42,new Date()); 
-		String name = d.getName() ;
+		String name = "Will Smith" ;
 		try {
 			sys.add(d) ;
 		} catch (Exception e) {
@@ -316,24 +349,31 @@ class TestSys {
 	void processPatientStringData() { 
 		//An example input data from a file 
 		//We use / in the name to stop Tokenizer 
-		String[]  t = {"James/Smith","42","03-04-2021"} ;
+		String[]  t = {"James/Smith a","42","03-04-2021"} ;
+		String[]  x= {"James/Smith b","43","03-04-2021"} ;
+		String[]  z = {"James/Smith","44","03-04-2021"} ;
 		String id="" ;
 		try {
 			id = sys.add(t);
+			id = sys.add(x);
+			id = sys.add(z);
 		} catch (Exception e) {
-
+			fail() ;
 		}
 		Patient p;
 		try {
 			p = sys.get(id,false);
-			assertEquals(1,sys.count()) ;
-			assertEquals(42,p.getAge()) ;
+			assertEquals(3,sys.count()) ;
+			assertEquals(44,p.getAge()) ;
 			boolean nameEq= p.getName().equals("James Smith") ;
 			assertEquals(true, nameEq) ;
 		} catch (PatientNotFound e) {}
 	}
 	@Test
 	void processPatientStringInvalid() {
-		
+		String[]  z = {"42","Bef","03-04-2021"} ;
+		assertThrows(InvalidDataFormat.class,()->{ 
+			sys.add(z) ;
+		}) ;
 	}
 }
