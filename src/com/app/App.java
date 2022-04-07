@@ -1,6 +1,7 @@
 package com.app;
 import java.util.* ;
 
+import com.app.Controller.EditOptions;
 import com.app.exceptions.InvalidDataFormat;
 import com.app.exceptions.InvalidTokensNum;
 
@@ -125,7 +126,7 @@ public class App {
 	 * Check for userinput and create new paitent  
 	 */
 	public void takePatientInput( String[] data ){
-		//TODO: Handle incorrect input data 
+		//The input name should have no space between or  
 		try { 
 			//TODO : Modify the controller to throws InvalidDataFormat when invalid input
 			String id;
@@ -136,7 +137,15 @@ public class App {
 			// Handle data rechange name
 			}
 		}
-
+	/**
+	 * Since name in the system dont contain any space  this function process the name , add space to each capital letter 
+	 * represent the different each names (First name, last Name, middle Name) ; 
+	 * @param n
+	 * @return
+	 */
+	public String formatName(String n) {
+		return n.replaceAll("(.)([A-Z])", "$1 $2") ;
+	}
 	/**
 	 * Execute the option choosen by user , in each options you should have a  data check   
 	 * There are multiple operation: 
@@ -206,13 +215,11 @@ public class App {
 					if(removeWithName){
 						try {
 							String revName ="" ;
-							for(int i=2;i<flag.length-1;i++) {
-								revName+=flag[i]+" " ;
+							for(int i=2;i<flag.length;i++) {
+								revName+=flag[i] ;
 							}
-							revName+=flag[flag.length-1] ;
-
 							controller.remove(revName,true) ;
-							System.out.println("Patient with name \"" + flag[2]+"\" removed") ;
+							System.out.println("Patient with name \"" + formatName(revName)+"\" removed") ;
 						} catch(Exception e) { 
 							System.out.println(e.getMessage()) ;
 						}
@@ -235,7 +242,92 @@ public class App {
 					 *  if(valid){ 
 					 *  	edit(Patient,option,value);	
 					 *  } 
+					 *  EDIS > edit --name "foo bar" --name "Hello World"
 					 */
+					boolean editName= flag[1].equals("--name")|| flag[1].equals("-n") ;
+					boolean editId= flag[1].equals("--id")|| flag[1].equals("-i") ;
+					if( !editName && !editId) { 
+						System.out.println("Please specify value with [--name,-n] or [--id ,-i]") ; 
+						break ;
+					}
+					//Set the correct key to the system 
+					//if is edit id then the key is flag[2]
+					// but if the key is name scan the name 
+					String key ;
+					if(editId) { 
+						key =flag[2];  
+						boolean found = controller.search(key, false) ;
+						if(!found) {
+							System.out.println("patient with id: "+key+" not found") ;
+							break ;
+						}
+
+					}else { 
+						String revName ="" ;
+						for(int i=2;i<flag.length;i++) {
+							revName+=flag[i];
+						}
+						key = revName ;
+						boolean found = controller.search(key, true ) ;
+						if(!found) {
+							System.out.println("patient with name: "+formatName(key)+" not found") ;
+							break ;
+						}
+					}
+					/**
+					 * Refactor in to a seperate prompt to edit patient info  
+					 */
+					System.out.println("Please choose a field: ") ;
+					String field =sc.nextLine() ;
+					Controller.EditOptions userOp=null ; 
+					boolean editAgeVal= field.equals("age")|| field.equals("a") ;
+					if(editAgeVal) { 
+						userOp= EditOptions.AGE ;
+					}
+					boolean editNameVal= field.equals("name")|| field.equals("n") ;
+					if(editNameVal) { 
+						userOp= EditOptions.NAME;
+					}
+					boolean editTimeVal= field.equals("time")|| field.equals("t") ;
+					if(editTimeVal) { 
+						userOp= EditOptions.ARRIVETIME;
+					}
+					boolean editAllVal= field.equals("all")|| field.equals("a") ;
+					if(editAllVal) { 
+						userOp= EditOptions.ALL;
+					}
+					if(userOp==null){
+						System.out.println( "Specify : name ,age ,time ,all") ;  
+						break ; 
+					}
+					//Extract value input from flag 
+					//
+					String value="" ;
+					System.out.println("Please enter new value of specified field: ") ;
+					value = sc.nextLine().trim();
+					if(userOp.equals(EditOptions.NAME)) {
+						value.replaceAll(" ","") ;
+					}
+					if(editName){
+
+						try {
+							//edit
+							controller.edit(key, true , userOp, value) ;
+							System.out.println("Patient with name \"" + formatName(key)+"\" edited ") ;
+						} catch(Exception e) { 
+							System.out.println(e.getMessage()) ;
+						}
+					}
+					if(editId) { 
+						try {
+							//edit
+							controller.edit(key, false, userOp, value) ;
+							System.out.println("Patient with id \"" + key+"\" editd") ;
+						} catch(Exception e) { 
+							System.out.println(e.getMessage()) ;
+						}
+						
+					}
 					break ;
 				}
 				case("get"):{ 
@@ -249,15 +341,18 @@ public class App {
 						break ;
 					}
 					if(getWithName){
+						//TODO : Implement the to  also show the patient with the same name  
+						// For instance a get --name Will Smith_2 will show patient with name Will Smith Will Smith_3
+						// Simply by counting the number of subfix in <name>_<subfix> 
 						try {
 							String revName ="" ;
-							for(int i=2;i<flag.length-1;i++) {
-								revName+=flag[i]+" " ;
+							for(int i=2;i<flag.length;i++) {
+								revName+=flag[i] ;
 							}
-							revName+=flag[flag.length-1] ;
 							//Get the patient 
 							Patient p = controller.get(revName,true) ;
 							//TODO : Count the number of patient have the same subfix 
+							//printTable(Patient p) ; 
 							System.out.println(p.toString()) ;
 						} catch(Exception e) { 
 							System.out.println(e.getMessage()) ;
@@ -297,7 +392,7 @@ public class App {
         String option ;
         while(true){ 
             System.out.print(prompt) ;
-            option = sc.nextLine() ; 
+			option = sc.nextLine().trim() ; 
             //Check if the option is empty  
             if(option=="") {
             	continue;
