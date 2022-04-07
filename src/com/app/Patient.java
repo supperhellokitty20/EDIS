@@ -67,9 +67,10 @@ public Patient (String name , int age , Date intakeTime){
 	public int hashCode() {
 		return Objects.hash(age, intakeTime, name);
 	}
+	
 	@Override
 	public String toString() {
-		return "Patient [id=" + id + ", name=" + name + ", age=" + age + ", intakeTime=" + intakeTime + "]";
+		return "Patient [id=" + id + ", name=" + name.replaceAll("(.)([A-Z])", "$1 $2")  + ", age=" + age + ", intakeTime=" + intakeTime + "]";
 	}
 	@Override
 	public boolean equals(Object obj) {
