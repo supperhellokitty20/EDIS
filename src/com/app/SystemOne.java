@@ -82,6 +82,7 @@ public class SystemOne implements Controller {
 	@Override
 	public String add(Patient p) throws PatientExist {
 		// TODO Auto-generated method stub
+		p.setName(p.getName().replaceAll(" ","")) ;
 		if (this.map.containsValue(p)) {
 			throw new PatientExist("The patient \"" + p.getId() + "\":\"" + p.getName() + "\" had exist!\n");
 		}
@@ -93,7 +94,7 @@ public class SystemOne implements Controller {
 			p.setName(oldName+"_"+c) ;
 			System.out.println("\""+oldName+"\" has existed , adding a prefix\n"
 					+ "Patient new name:"+p.getName()+"(id :"+p.getId()+")") ;
-		}
+		} 
 		String id = p.getId();
 		this.map.putIfAbsent(id, p);
 		return id;
@@ -235,7 +236,7 @@ public class SystemOne implements Controller {
 	 */
 	public String cleanName(String n) {
 		// Clean special character
-		n = n.replaceAll("[^a-zA-Z0-9]", " ");
+		n = n.replaceAll("[^a-zA-Z0-9]", "");
 		n = n.replaceAll("[0-9]", "");
 		return n.trim();
 	}
