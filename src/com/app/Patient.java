@@ -12,7 +12,7 @@ class Data{
 /* The patient class only contains the id and have a data object  
  */
 public class  Patient{
-	private int id ; 
+	private String id ; 
    private String name ; 
    private int age ; 
    private Date intakeTime; 
@@ -40,11 +40,16 @@ public Patient (String name , int age , Date intakeTime){
     /* Setter and getter object for the class. 
      *      
      * */
-	public int getId(){ 
+	public String getId(){ 
 		return this.id ; 
 	}
+	/**
+	 * set the id of the patient , each Patient id is the hexString(hash) of
+	 * this Obj fields 
+	 * @param hash
+	 */
 	private void setId(int hash) {
-		this.id = hash; 
+		this.id = Integer.toHexString(hash); 
 	}
 	public String getName() {
 		return name;
@@ -61,6 +66,10 @@ public Patient (String name , int age , Date intakeTime){
 	@Override
 	public int hashCode() {
 		return Objects.hash(age, intakeTime, name);
+	}
+	@Override
+	public String toString() {
+		return "Patient [id=" + id + ", name=" + name + ", age=" + age + ", intakeTime=" + intakeTime + "]";
 	}
 	@Override
 	public boolean equals(Object obj) {

@@ -53,6 +53,9 @@ public class App {
 		 System.out.print("\n")  ;
 
 	}
+	int subFixCount() { 
+		return 0  ;
+	}
 	/**
 	 * Load a file that contains the current system patient data 
 	 * .To be a valid file,each line must follow the syntax: 
@@ -70,7 +73,7 @@ public class App {
 		try {
 			sc = new Scanner(load);
 			while(sc.hasNextLine()) { 
-				String data = sc.nextLine(); 
+				String data = sc.nextLine().trim(); 
 				//Tokenize the input
 				StringTokenizer tc = new StringTokenizer(data," ") ;
 				int size  = tc.countTokens();
@@ -80,11 +83,11 @@ public class App {
 					patientArray[i]= tc.nextToken().trim() ;
 					i++ ;
 				}
-				int newPatientId;
+				String newPatientId;
 				try {
 					newPatientId = controller.add(patientArray);
-					System.out.printf(" New Patient Id added %sw\n",Integer.toHexString(newPatientId) ); 
-				} catch (InvalidDataFormat e) {
+					System.out.printf(" New Patient Id added %s\n",newPatientId ); 
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					System.out.print(e.getMessage()) ;
 				}
@@ -120,25 +123,20 @@ public class App {
 	}
 	/**
 	 * Check for userinput and create new paitent  
-	 *  @return theNewly create patientID
 	 */
-	public int takePatientInput(int numTokens, String[] data ) throws InvalidTokensNum{
+	public void takePatientInput( String[] data ){
 		//TODO: Handle incorrect input data 
-		
-		final int STRING_DATA_SIZE = 3 ;
-		if(numTokens-1!=STRING_DATA_SIZE) {
-			throw new InvalidTokensNum("To add new patient follow the syntax : add <name> <age> <arriveTime>") ;
-		}
-		int id=0;
 		try { 
 			//TODO : Modify the controller to throws InvalidDataFormat when invalid input
+			String id;
 			id =controller.add(data) ;
-			System.out.printf(" New Patient Id added %sw\n",Integer.toHexString(id)); 
+			System.out.printf(" New Patient Id added %s\n",id); 
 		} catch (Exception e) {
-			
+			System.out.println(e.getMessage()) ;
+			// Handle data rechange name
+			}
 		}
-		return id;
-	}
+
 	/**
 	 * Execute the option choosen by user , in each options you should have a  data check   
 	 * There are multiple operation: 
@@ -146,9 +144,10 @@ public class App {
 	 * 		<li> quit</li> 
 	 * 		<li> load <file_path> </li> 
 	 * 		<li> add <Patient>  </li> 
-	 * 		<li> remove <Patient> or {PatientList}  </li> 
+	 * 		<li> edit [<id>,<name>] [--name,-n][--age,-a][--time,-t][--all,-a]  <value>  </li> 
+	 * 		<li> remove <PatientName> or {PatientID}  </li> 
 	 * 		<li> export <output_file_path> </li> 
-	 * 		<li> list <int>  </li> 
+	 * 		<li> get <id>  </li> 
 	 *  </ul> 
 	 * @param option
 	 * @return 
@@ -156,13 +155,12 @@ public class App {
     public void execute(String option){
 
     	//Tokenize input 
-    	StringTokenizer st = new StringTokenizer(option) ;
+    	StringTokenizer st = new StringTokenizer(option.trim()) ;
     	// Number of user input each loop iteration 
     	final int numTokens=st.countTokens() ;
-    	//Check if the number of tokens is also valid for each type of operation
     	String[] flag  = new String[numTokens] ; 
     	for(int i=0;i<numTokens;i++) { 
-    		flag[i] = st.nextToken() ;
+    		flag[i] = st.nextToken().trim() ;
     	}
     	String mode  = flag[0] ;
     	switch(mode) { 
@@ -171,6 +169,7 @@ public class App {
     		 */
 				case( "quit"): {
 					if(numTokens==1) quit() ;
+					break ;
 					//else throws Exception.Wrong numbers of arguments 
 				}
 				case("load"):{ 
@@ -180,31 +179,111 @@ public class App {
 					}catch(Exception err ) { 
 						System.out.println(err.getMessage()) ;
 					}
+					break ;
 					
 				}
 				case("export"):{ 
 					//Export parse the  
+					break ;
 				}
 				case("add"):{
 					//We need <name><age><arriveTime>
 					try {
-						takePatientInput(numTokens,Arrays.copyOfRange(flag,1,flag.length)) ;
+						takePatientInput(Arrays.copyOfRange(flag,1,flag.length)) ;
 					}
 					catch(Exception err) {
 						System.out.println(err.getMessage()) ;
 					}
+					break ;
 				} 
 				case("remove"):{ 
-					
+					boolean removeWithName = flag[1].equals("--name")|| flag[1].equals("-n") ;
+					boolean removeWithId= flag[1].equals("--id")|| flag[1].equals("-i") ;
+					if(!removeWithName && !removeWithId) { 
+						System.out.println("Please specify value type with [--name,-n] or [--id ,-i]") ;
+						break ;
+					}
+					if(removeWithName){
+						try {
+							String revName ="" ;
+							for(int i=2;i<flag.length-1;i++) {
+								revName+=flag[i]+" " ;
+							}
+							revName+=flag[flag.length-1] ;
+
+							controller.remove(revName,true) ;
+							System.out.println("Patient with name \"" + flag[2]+"\" removed") ;
+						} catch(Exception e) { 
+							System.out.println(e.getMessage()) ;
+						}
+					}
+					if(removeWithId) { 
+						try {
+							controller.remove(flag[2],false) ;
+							System.out.println("Patient with id \"" + flag[2]+"\" removed") ;
+						} catch(Exception e) { 
+							System.out.println(e.getMessage()) ;
+						}
+						
+					}
+					break;
 				}
-				case("list"):{ 
-					//Show the first n number of patient in the db  
-					//allow search and filter the function too , or store the key value of that patient objet in an array 
+				case("edit"):{ 
+					/**
+					 *  Check if ther user input more than one edit option 
+					 *  if notValid  println("Only one edit field is allow") ; 
+					 *  if(valid){ 
+					 *  	edit(Patient,option,value);	
+					 *  } 
+					 */
+					break ;
+				}
+				case("get"):{ 
+					/**
+					 * Get patient info from --id  list or --name list , each seperated by the comma (,)
+					 */
+					boolean getWithName= flag[1].equals("--name")|| flag[1].equals("-n") ;
+					boolean getWithId= flag[1].equals("--id")|| flag[1].equals("-i") ;
+					if(!getWithName && !getWithId) { 
+						System.out.println("Please specify value type with [--name,-n] or [--id ,-i]") ;
+						break ;
+					}
+					if(getWithName){
+						try {
+							String revName ="" ;
+							for(int i=2;i<flag.length-1;i++) {
+								revName+=flag[i]+" " ;
+							}
+							revName+=flag[flag.length-1] ;
+							//Get the patient 
+							Patient p = controller.get(revName,true) ;
+							//TODO : Count the number of patient have the same subfix 
+							System.out.println(p.toString()) ;
+						} catch(Exception e) { 
+							System.out.println(e.getMessage()) ;
+						}
+					}
+					if(getWithId) { 
+						try {
+							//Get the patient  here
+							String getId = flag[2]; 
+							Patient p = controller.get(getId,false) ;
+							System.out.println(p.toString()) ;
+						} catch(Exception e) { 
+							System.out.println(e.getMessage()) ;
+						}
+						
+					}
+					break;
+				}
+				case("help"):{ 
+					this.printHelp() ;
 				}
     	} 
     }
     public App(){ 
     	sc = new Scanner(System.in) ;
+    	//Change type of system here
     	controller = new SystemOne() ;
     	printBanner() ;
     	printHelp() ;
