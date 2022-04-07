@@ -10,6 +10,7 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.regex.Pattern;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -49,6 +50,12 @@ public class SystemTwo implements Controller {
 		if (this.map.containsValue(p)) {
 			throw new PatientExist("The patient with id" + p.getId() + " with name" + p.getName() + " had exist!");
 		}
+		String name = p.getName();
+		if (this.search(name, true)) {
+			p.setName(name + "_" + countSubfix(name));
+			System.out.println("\"" + name + "\" has existed , adding a prefix\n" + "Patient new name:" + p.getName()
+					+ "(id :" + p.getId() + ")");
+		}
 		this.map.put(p.getId(), p);
 		return p.getId();
 	}
@@ -64,18 +71,19 @@ public class SystemTwo implements Controller {
 			throw new InvalidTokensNum(
 					"The number of input tokens is" + data.length + " expected " + STRING_ARRAY_DATA_SIZE);
 		}
-		if (data[0].isBlank()) {
+		if (cleanName(data[0]).isBlank()) {
 			throw new InvalidDataFormat("Patient name" + data[0] + " is not valid");
 		}
 
 		try {
 			Patient p = new Patient(cleanName(data[0]), Integer.parseInt(data[1]), this.parseDate(data[2]));
 			return this.add(p);
-		} catch (InvalidDataFormat e) {
-			// Print out error message
-			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
 		} catch (PatientExist e) {
 			throw new PatientExist(e.getMessage());
+		} catch (Exception e) {
+			// Print out error message
+			throw new InvalidDataFormat(
+					"Invalid input data, date must be in the format dd-MM-yyyy or age is not a number");
 		}
 	}
 
@@ -133,7 +141,7 @@ public class SystemTwo implements Controller {
 				throw new PatientNotFound("Patient id " + key + " is not found");
 			}
 		}
-		
+
 		switch (option) {
 		case NAME: {
 			// Check and validate name
@@ -261,5 +269,20 @@ public class SystemTwo implements Controller {
 			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
 		}
 		return pArriveTime;
+	}
+
+	protected int countSubfix(String name) {
+		int c = 1;
+		ArrayList<String> nameList = this.getNames();
+		String sp = "" + name;
+		for (int i = 0; i < nameList.size(); i++) {
+			String currentName = nameList.get(i);
+			boolean match = Pattern.compile(sp + "_[0-9]").matcher(currentName).matches();
+			if (match) {
+				c++;
+			}
+		}
+
+		return c + 1;
 	}
 }
