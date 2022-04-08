@@ -1,6 +1,8 @@
 package com.app;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -22,31 +24,59 @@ import com.app.exceptions.PatientNotFound;
 
 public class SystemTwo implements Controller {
 
+	//The tree map for this system uses to hold the id and Patient classes
 	protected TreeMap<String, Patient> map;
 
+	//Constructor for the class to initilize the TreeMap map
 	public SystemTwo() {
 		this.map = new TreeMap<String, Patient>();
 	}
 
+	/* Accessor for this map
+	 * @return this class's map as a clone
+	 */
 	public TreeMap<String, Patient> getMap() {
 		return (TreeMap<String, Patient>) this.map.clone();
 	}
 
-	public ArrayList<String> getID() {
+	/* Accessor for the IDs of this system
+	 * @return the all the IDs in the TreeMap
+	 */
+	public ArrayList<String> getIDs() {
 		return new ArrayList<String>(this.map.keySet());
 	}
 
+	/* Accessor for the Patients of this system
+	 * @return all the Patients in the TreeMap
+	 */
+	public ArrayList<Patient> getPatient(){
+		return new ArrayList<Patient>(this.map.values());
+	}
+	
+	/* Accessor for the Patient's names of this system
+	 * @return all the names of the patients in the TreeMap
+	 */
 	public ArrayList<String> getNames() {
-		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
 		ArrayList<String> names = new ArrayList<String>();
-		for (int i = 0; i < patients.size(); i++) {
-			names.add(patients.get(i).getName());
+		Set<Map.Entry<String, Patient>> entries = this.getMap().entrySet();
+		for (Map.Entry<String, Patient> entry : entries) {
+			names.add(entry.getValue().getName());
 		}
 		return names;
 	}
 
+	/*
+	 * Gets a Patient and adds it to the map, only if the patient isn't 
+	 * already in the system. If the Patient were to have the same name 
+	 * as another in the system, it would add the new patient with a number
+	 * next to its name
+	 * @Param p holds the value of type Patient, given by the user
+	 * @throws PatientExist if the patient is already in the system, it will throw this exception
+	 * @return 
+	 */
 	@Override
 	public String add(Patient p) throws PatientExist {
+		p.setName(p.getName().replaceAll(" ","")) ;
 		if (this.map.containsValue(p)) {
 			throw new PatientExist("The patient with id" + p.getId() + " with name" + p.getName() + " had exist!");
 		}
@@ -90,13 +120,20 @@ public class SystemTwo implements Controller {
 	@Override
 	public void export(String path) {
 		// TODO Auto-generated method stub
-
+		try {
+			FileWriter fw = new FileWriter(path);
+			fw.write(this.info());
+			fw.close();		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void summary() {
 		// TODO Auto-generated method stub
-
+		System.out.println(this.info());
 	}
 
 	@Override
@@ -265,7 +302,7 @@ public class SystemTwo implements Controller {
 		try {
 			pArriveTime = formatter.parse(value);
 		} catch (ParseException e) {
-			// Print out errormessage
+			// Print out error message
 			throw new InvalidDataFormat("Invalid input data, date must be in the format dd-MM-yyyy");
 		}
 		return pArriveTime;
@@ -284,5 +321,16 @@ public class SystemTwo implements Controller {
 		}
 
 		return c + 1;
+	}
+	
+	public String info() {
+		String line = "__________________________________________________________\n";
+		String info = "\n" + line + "Number of Patients currently inside the system: " + this.count() +"\n";
+		Set<Map.Entry<String, Patient>> entries = this.getMap().entrySet();
+		for (Map.Entry<String, Patient> entry : entries) {
+			info += entry.getValue().toString() + "\n";
+		}
+		info += line;
+		return info;
 	}
 }
