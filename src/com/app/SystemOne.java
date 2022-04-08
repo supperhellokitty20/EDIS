@@ -1,8 +1,12 @@
 package com.app;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -138,16 +142,35 @@ public class SystemOne implements Controller {
 		}
 	}
 
+	//Helper method for summary and export to get all the info on the patients in the system.
+	public String info() {
+		String line = "__________________________________________________________\n";
+		String info = "\n" + line + "Number of Patients currently inside the system: " + this.count() +"\n";
+		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+		for (int i = 0; i < patients.size(); i++) {
+			info += patients.get(i).toString() + "\n";
+		}
+		info += line;
+		return info;
+	}
+	
 	@Override
 	public void export(String path) {
 		// TODO Auto-generated method stub
-
+		try {
+			FileWriter fw = new FileWriter(path);
+			fw.write(this.info());
+			fw.close();		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void summary() {
 		// TODO Auto-generated method stub
-
+		System.out.println(this.info());
 	}
 
 	@Override
