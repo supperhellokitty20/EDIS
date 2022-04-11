@@ -6,6 +6,7 @@ package com.app;
  *
  */
 import java.io.File;
+import java.util.ArrayList;
 
 import com.app.exceptions.InvalidDataFormat;
 import com.app.exceptions.InvalidTokensNum;
@@ -16,6 +17,11 @@ import com.app.exceptions.PatientNotFound;
 	 	final String DATE_FORMAT = "dd-MM-yyyy" ;
 	 	//The size of tokenized array 
 	 	final int STRING_ARRAY_DATA_SIZE = 3; 
+	 	
+	 	ArrayList<String> getIDs();
+	 	
+	 	ArrayList<String> getNames();
+	 	
 	    /**
 	     * Remove the patient with that such name  
 	     * @param name
