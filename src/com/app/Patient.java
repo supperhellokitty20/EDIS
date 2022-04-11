@@ -6,9 +6,6 @@ import java.util.Objects;
  * @author Tuan Nguyen 
  *
  */
-class Data{ 
-	String arriveTimeOfDay;
-}
 /* The patient class only contains the id and have a data object  
  */
 public class  Patient{
@@ -84,4 +81,3 @@ public Patient (String name , int age , Date intakeTime){
 		return age == other.age && Objects.equals(intakeTime, other.intakeTime) && Objects.equals(name, other.name);
 	}
 }
-
