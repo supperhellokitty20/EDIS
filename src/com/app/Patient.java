@@ -6,9 +6,7 @@ import java.util.Objects;
  * @author Tuan Nguyen 
  *
  */
-class Data{ 
-	String arriveTimeOfDay;
-}
+
 /* The patient class only contains the id and have a data object  
  */
 public class  Patient{
