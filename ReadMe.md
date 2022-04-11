@@ -9,38 +9,29 @@
 
 ## Testing instructions  
 
-* Run the app 
+* Run ``App.java``  , in the EDIS to get help ``EDIS> help`` 
+* Load the prepared `Test_data`  file into the system  `EDIS> load Test_data` . This will provided some fake data for user to test out the system.
 
- 
-## Implementation  
-
-Each patient have a seperate class.  
-
-Using skip list data structure for search and delete data entry ?  
 
 ##  Features of the two sytems
+	
+###1. Add new Patient in  a data line input   
 
-### System 1: 
+* Command ``add <name> <age> <mm/DD/yyyy>`` . Will add a new patient with provided info. 
 
-### System 2: 
-
-## Design: 
-
-The ADT Structure we need is going be Sorted Map.
-The two system will have diffrent implementation of Sorted Map. 
-Again, each implementation have diffrent pros and cons come with it.
-
-### System 1: Skip list implementation 
-
--> See analysis of operation from text_book 
-
-### System 2: Binary Search Tree implementation 
-
--> See analysis of operation from text_book 
+* Notice that `<name>` must have no space between names (First,Last) or the names must be seperate with a special character (Foo_Bar) .
 
 
-## Analysis:  
+###2. Get a patient with id or name  
+ Command `` get [--name,-n][--id,-i]``. Will print out the patient info with such name or id passed in . 
 
-## TODO 
-    0.What is the features ?
-    1.Write test file first.
+###3. Remove a patient with id or name  
+ Command `` remove [--name,-n][--id,-i]``. Will remove the patient with given name or id from the system . 
+
+###4. Edit the current patient data from name or id  
+ Command `` edit [--name,-n][--id,-i]``.  Will allow user to edit the patient info.If the patient name or id is found.The program will bring the user 
+ to a seperate prompt where user will input the edit fields  `name,age,time,all`  and the value to change. 
+
+###5. Export the current patient data to text file  
+
+* Command ``export <file_name>`` will export the current system patient to a file in a format such that can be loaded later in the system with `load <saved_data_file>`  
