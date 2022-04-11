@@ -104,9 +104,9 @@ class TestSys {
 			fail("The add function auto add subfix _number") ;
 		}
 		try {
-			boolean x =sys.get(z.getId(), false).getName().equals("Will Smith_2");
-			boolean t =sys.get(z1.getId(), false).getName().equals("Will Smith_3");
-			boolean t2 =sys.get(z2.getId(), false).getName().equals("Will Smith_4");
+			boolean x =sys.get(z.getId(), false).getName().equals("WillSmith_2");
+			boolean t =sys.get(z1.getId(), false).getName().equals("WillSmith_3");
+			boolean t2 =sys.get(z2.getId(), false).getName().equals("WillSmith_4");
 			assertEquals(true,x) ;
 			assertEquals(true,t) ;
 			assertEquals(true,t2) ;
@@ -119,14 +119,13 @@ class TestSys {
 	//Test get patient with using patient id. 
 	@Test
 	void testGet() { 
-		//Throws a PatientNotFound error
-		Patient p = new Patient("GI jane",42,new Date()); 
+		Patient p = new Patient("Gi Jane",42,new Date()); 
 		String id = p.getId() ;
 		try {
 			sys.add(p);
 			Patient data =sys.get(id,false) ;
 			Patient data2 =sys.get(p.getName(),true) ;
-			String expName =  "GI jane" ;
+			String expName =  "GiJane" ;
 			assertEquals(id,data.getId()) ;
 			assertEquals(expName,data2.getName()) ;
 		} catch (Exception e) {
@@ -189,7 +188,8 @@ class TestSys {
 	@Test
 	void testRemove3() { 
 		Patient d = new Patient("Will Smith",42,new Date()); 
-		String name = "Will Smith" ;
+		//The patient name stored is without space  
+		String name = "WillSmith" ;
 		try {
 			sys.add(d) ;
 		} catch (Exception e) {
@@ -365,7 +365,7 @@ class TestSys {
 			p = sys.get(id,false);
 			assertEquals(3,sys.count()) ;
 			assertEquals(44,p.getAge()) ;
-			boolean nameEq= p.getName().equals("James Smith") ;
+			boolean nameEq= p.getName().equals("JamesSmith") ;
 			assertEquals(true, nameEq) ;
 		} catch (PatientNotFound e) {}
 	}

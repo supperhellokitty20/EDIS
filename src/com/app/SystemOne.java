@@ -1,9 +1,14 @@
 package com.app;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -81,7 +86,8 @@ public class SystemOne implements Controller {
 	 */
 	@Override
 	public String add(Patient p) throws PatientExist {
-		// TODO Auto-generated method stub
+		//Remove all space in the patient name 
+		p.setName(p.getName().replaceAll(" ","")) ;
 		if (this.map.containsValue(p)) {
 			throw new PatientExist("The patient \"" + p.getId() + "\":\"" + p.getName() + "\" had exist!\n");
 		}
@@ -93,7 +99,7 @@ public class SystemOne implements Controller {
 			p.setName(oldName+"_"+c) ;
 			System.out.println("\""+oldName+"\" has existed , adding a prefix\n"
 					+ "Patient new name:"+p.getName()+"(id :"+p.getId()+")") ;
-		}
+		} 
 		String id = p.getId();
 		this.map.putIfAbsent(id, p);
 		return id;
@@ -108,12 +114,13 @@ public class SystemOne implements Controller {
 
 		if (data.length < STRING_ARRAY_DATA_SIZE) {
 			throw new InvalidTokensNum(
-					"The number of input tokens is " + data.length + " expected " + STRING_ARRAY_DATA_SIZE);
+					"The number of input tokens is " + data.length + " expected " + STRING_ARRAY_DATA_SIZE+"\n");
 		}
 		Patient p;
+		String oldName  = data[0] ;
 		String pName = cleanName(data[0]);
 		if (pName.isBlank()) {
-			throw new InvalidDataFormat("Patient name \"" + pName + "\" is not valid");
+			throw new InvalidDataFormat("Patient name \"" + oldName + "\" is not valid");
 		}
 		// Parse the date from string
 		Date pArriveTime = null;
@@ -137,16 +144,39 @@ public class SystemOne implements Controller {
 		}
 	}
 
+	//Helper method for summary and export to get all the info on the patients in the system.
+	public String info() {
+		String line = "__________________________________________________________\n";
+		String info = "\n" + line + "Number of Patients currently inside the system: " + this.count() +"\n";
+		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
+		for (int i = 0; i < patients.size(); i++) {
+			Patient p = patients.get(i) ;
+			DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);  
+			String date = dateFormat.format(p.getIntakeTime()) ;
+			String patientInfo =""+p.getName()+" "+p.getAge()+" "+date;
+			info += patientInfo + "\n";
+		}
+		info += line;
+		return info;
+	}
+	
 	@Override
 	public void export(String path) {
 		// TODO Auto-generated method stub
-
+		try {
+			FileWriter fw = new FileWriter(path);
+			fw.write(this.info());
+			fw.close();		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void summary() {
 		// TODO Auto-generated method stub
-
+		System.out.println(this.info());
 	}
 
 	@Override
@@ -235,7 +265,7 @@ public class SystemOne implements Controller {
 	 */
 	public String cleanName(String n) {
 		// Clean special character
-		n = n.replaceAll("[^a-zA-Z0-9]", " ");
+		n = n.replaceAll("[^a-zA-Z0-9]", "");
 		n = n.replaceAll("[0-9]", "");
 		return n.trim();
 	}
