@@ -95,11 +95,17 @@ public class App {
 	/**
 	 * Helper method to export data to file.
 	 */
-	private void saveData() {
+	private void saveData(String fileName) {
 
 		// The default name for the export
 		// String defaultName ="Patient_data.txt" ;
-		String path = "Patient_data.txt";
+		String path ; 
+		if(fileName.isBlank()) { 
+			path = "Patient_data.txt";
+		}else { 
+			path = fileName; 
+		}
+
 		File f = new File(path);
 		try {
 			f.createNewFile();
@@ -120,7 +126,7 @@ public class App {
 		// Check what choice the user have
 		if (save) {
 			// writeData() ;
-			saveData();
+			saveData("");
 		}
 		System.out.println("Quit Success !");
 		System.exit(0);
@@ -196,6 +202,10 @@ public class App {
 		}
 		case ("load"): {
 			// TODO : Make sure the path is correct and was able to open
+			if(numTokens<2) {
+				System.out.println("Please specify a file name to load");
+				break ;
+			}
 			try {
 				loadFile(flag[1]);
 			} catch (Exception err) {
@@ -205,12 +215,20 @@ public class App {
 
 		}
 		case ("export"): {
-			// Export parse the
-			controller.export(flag[1]);
+			if(numTokens<2) {
+				System.out.println("Please specify a  file path to be saved (default : Patient_data.txt");
+				break ;
+			}
+			//controller.export(flag[1]);
+			saveData(flag[1]) ;
 			break;
 		}
 		case ("add"): {
 			// We need <name><age><arriveTime>
+			if(numTokens<2) {
+				System.out.println("Please specify patient  data with [--name,-n] or [--id ,-i]");
+				break ;
+			}
 			try {
 				takePatientInput(Arrays.copyOfRange(flag, 1, flag.length));
 			} catch (Exception err) {
@@ -219,6 +237,10 @@ public class App {
 			break;
 		}
 		case ("remove"): {
+			if(numTokens<2) {
+				System.out.println("Please specify patient data with [--name,-n] or [--id ,-i]");
+				break ;
+			}
 			boolean removeWithName = flag[1].equals("--name") || flag[1].equals("-n");
 			boolean removeWithId = flag[1].equals("--id") || flag[1].equals("-i");
 			if (!removeWithName && !removeWithId) {
@@ -254,6 +276,10 @@ public class App {
 			 * one edit field is allow") ; if(valid){ edit(Patient,option,value); } EDIS >
 			 * edit --name "foo bar" --name "Hello World"
 			 */
+			if(numTokens<2) {
+				System.out.println("Please specify patient data with [--name,-n] or [--id ,-i]");
+				break ;
+			}
 			boolean editName = flag[1].equals("--name") || flag[1].equals("-n");
 			boolean editId = flag[1].equals("--id") || flag[1].equals("-i");
 			if (!editName && !editId) {
@@ -345,6 +371,10 @@ public class App {
 			 * Get patient info from --id list or --name list , each seperated by the comma
 			 * (,)
 			 */
+			if(numTokens<2) {
+				System.out.println("Please specify patient data with [--name,-n] or [--id ,-i]");
+				break ;
+			}
 			boolean getWithName = flag[1].equals("--name") || flag[1].equals("-n");
 			boolean getWithId = flag[1].equals("--id") || flag[1].equals("-i");
 			if (!getWithName && !getWithId) {
