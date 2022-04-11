@@ -81,7 +81,7 @@ public class SystemOne implements Controller {
 	 */
 	@Override
 	public String add(Patient p) throws PatientExist {
-		// TODO Auto-generated method stub
+		//Remove all space in the patient name 
 		p.setName(p.getName().replaceAll(" ","")) ;
 		if (this.map.containsValue(p)) {
 			throw new PatientExist("The patient \"" + p.getId() + "\":\"" + p.getName() + "\" had exist!\n");
