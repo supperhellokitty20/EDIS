@@ -13,6 +13,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -78,7 +79,7 @@ public class SystemTwo implements Controller {
 	public String add(Patient p) throws PatientExist {
 		p.setName(p.getName().replaceAll(" ","")) ;
 		if (this.map.containsValue(p)) {
-			throw new PatientExist("The patient with id" + p.getId() + " with name" + p.getName() + " had exist!");
+			throw new PatientExist("The patient with id" + p.getId() + " with name " + p.getName() + " had exist!\n");
 		}
 		String name = p.getName();
 		if (this.search(name, true)) {
@@ -101,8 +102,9 @@ public class SystemTwo implements Controller {
 			throw new InvalidTokensNum(
 					"The number of input tokens is" + data.length + " expected " + STRING_ARRAY_DATA_SIZE);
 		}
+		String oldName=data[0] ;
 		if (cleanName(data[0]).isBlank()) {
-			throw new InvalidDataFormat("Patient name" + data[0] + " is not valid");
+			throw new InvalidDataFormat("Patient name" + oldName + " is not valid");
 		}
 
 		try {
@@ -328,7 +330,12 @@ public class SystemTwo implements Controller {
 		String info = "\n" + line + "Number of Patients currently inside the system: " + this.count() +"\n";
 		Set<Map.Entry<String, Patient>> entries = this.getMap().entrySet();
 		for (Map.Entry<String, Patient> entry : entries) {
-			info += entry.getValue().toString() + "\n";
+			Patient p = entry.getValue() ;
+			DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);  
+			String date = dateFormat.format(p.getIntakeTime()) ;
+			//Export to readable format for the software
+			String patientInfo =""+p.getName()+" "+p.getAge()+" "+date;
+			info += patientInfo + "\n";
 		}
 		info += line;
 		return info;

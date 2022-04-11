@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -113,12 +114,13 @@ public class SystemOne implements Controller {
 
 		if (data.length < STRING_ARRAY_DATA_SIZE) {
 			throw new InvalidTokensNum(
-					"The number of input tokens is " + data.length + " expected " + STRING_ARRAY_DATA_SIZE);
+					"The number of input tokens is " + data.length + " expected " + STRING_ARRAY_DATA_SIZE+"\n");
 		}
 		Patient p;
+		String oldName  = data[0] ;
 		String pName = cleanName(data[0]);
 		if (pName.isBlank()) {
-			throw new InvalidDataFormat("Patient name \"" + pName + "\" is not valid");
+			throw new InvalidDataFormat("Patient name \"" + oldName + "\" is not valid");
 		}
 		// Parse the date from string
 		Date pArriveTime = null;
@@ -148,7 +150,11 @@ public class SystemOne implements Controller {
 		String info = "\n" + line + "Number of Patients currently inside the system: " + this.count() +"\n";
 		ArrayList<Patient> patients = new ArrayList<Patient>(this.map.values());
 		for (int i = 0; i < patients.size(); i++) {
-			info += patients.get(i).toString() + "\n";
+			Patient p = patients.get(i) ;
+			DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);  
+			String date = dateFormat.format(p.getIntakeTime()) ;
+			String patientInfo =""+p.getName()+" "+p.getAge()+" "+date;
+			info += patientInfo + "\n";
 		}
 		info += line;
 		return info;
